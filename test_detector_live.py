@@ -213,54 +213,6 @@ def run_on_image_old(net, meta, image, point_cloud, thresh=.6, hier_thresh=.5, n
     # cv2.waitKey(0)
     return rbg_frame
 
-
-def run_on_image(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
-    """
-    Performs the detection
-    """
-    class_list = ['person', 'car']
-    custom_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    custom_image = cv2.resize(custom_image, (lib.network_width(
-        net), lib.network_height(net)), interpolation=cv2.INTER_LINEAR)
-    im, arr = array_to_image(custom_image)
-    num = c_int(0)
-    pnum = pointer(num)
-    predict_image(net, im)
-    dets = get_network_boxes(
-        net, image.shape[1], image.shape[0], thresh, hier_thresh, None, 0, pnum, 0)
-    num = pnum[0]
-    if nms:
-        do_nms_sort(dets, num, meta.classes, nms)
-    res = []
-    if debug:
-        print("about to range")
-    for j in range(num):
-        for i in range(meta.classes):
-            if dets[j].prob[i] > 0:
-                b = dets[j].bbox
-                lbl = meta.names[i].decode("utf-8")
-                class_flag = lbl in class_list
-                if class_flag == True:
-                    x1 = int(b.x - b.w / 2)
-                    y1 = int(b.y - b.h / 2)
-                    yExtent = int(b.h)
-                    xEntent = int(b.w)
-                    x2 = x1 + xEntent
-                    y2 = y1 + yExtent
-                    if x1 < 0:
-                        x1 = 0
-                    if y1 < 0:
-                        y1 = 0
-                    if x2 > image.shape[1] - 1:
-                        x2 = image.shape[1] - 1
-                    if y2 > image.shape[0] - 1:
-                        y2 = image.shape[0] - 1
-                    res.append((lbl, dets[j].prob[i], (x1, y1, x2, y2), i))
-    # res = sorted(res, key=lambda x: -x[1])
-    free_detections(dets, num)
-    return res
-
-
 def translate_coordinates(res, image_width, image_height, yolo_img_width, yolo_img_height):
     trans_matrix = ([image_width / yolo_img_width, 0, 0],
                     [0, image_height / yolo_img_height, 0],
