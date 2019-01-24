@@ -341,7 +341,7 @@ def run_yolo(frame):
     detected_image = run_on_image(net, meta, rgb_frame)
     return detected_image
 
-
+## img list
 def get_img_list(in_dir, ext, is_srt=True):
     src_dir = in_dir + '/*.' + ext
     list_images = glob.glob(src_dir)
